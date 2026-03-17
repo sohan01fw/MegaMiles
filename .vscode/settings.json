@@ -1,0 +1,12 @@
+{
+    "python.defaultInterpreterPath": "/home/sohancwact/Dev/project-megamiles/backend/venv/bin/python",
+    "python.analysis.extraPaths": [
+        "/home/sohancwact/Dev/project-megamiles/backend",
+        "/home/sohancwact/Dev/project-megamiles/backend/apps"
+    ],
+    "python.analysis.autoSearchPaths": true,
+    "python.terminal.activateEnvInCurrentTerminal": true,
+    "python.languageServer": "Pylance",
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.diagnosticMode": "workspace"
+}
