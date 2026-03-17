@@ -1,0 +1,20 @@
+import { z } from "zod"
+
+export const tripSchema = z.object({
+  currentLocation: z.string().min(1, "Location is required"),
+  pickup: z.string().min(1, "Pickup point is required"),
+  dropoff: z.string().min(1, "Dropoff point is required"),
+  cycleHoursUsed: z
+    .string()
+    .min(1, "Cycle hours is required")
+    .refine((v) => !isNaN(Number(v)), { message: "Must be a number" })
+    .refine((v) => Number(v) >= 0, { message: "Must be at least 0" })
+    .refine((v) => Number(v) <= 70, { message: "Max cycle hours is 70" }),
+})
+
+export type TripFormValues = z.infer<typeof tripSchema>
+export type Trip = TripFormValues & { 
+  id: string; 
+  createdAt: Date;
+  status: "planned" | "active" | "completed";
+}
