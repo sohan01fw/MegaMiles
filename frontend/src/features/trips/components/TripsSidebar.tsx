@@ -43,7 +43,7 @@ export function TripsSidebar({
         <div className="flex items-center gap-2">
           <h2 className="font-semibold text-base text-slate-800 tracking-tight">Trips</h2>
           <span className="bg-slate-100 text-slate-500 py-0.5 px-2 rounded-full text-xs font-medium">
-            {trips.length}
+            {getCount("planned")}
           </span>
         </div>
         <button

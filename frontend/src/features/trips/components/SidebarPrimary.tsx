@@ -1,4 +1,4 @@
-import { Compass, Search, Calendar, Map as MapIcon, Settings } from "lucide-react"
+import { Compass, Settings } from "lucide-react"
 
 export function SidebarPrimary() {
   return (
@@ -12,15 +12,6 @@ export function SidebarPrimary() {
       <div className="flex flex-col gap-6 w-full items-center">
         <button className="h-10 w-10 flex items-center justify-center rounded-xl bg-purple-100/50 text-purple-600 transition-colors">
           <Compass className="h-5 w-5" />
-        </button>
-        <button className="h-10 w-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
-          <Search className="h-5 w-5" />
-        </button>
-        <button className="h-10 w-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
-          <Calendar className="h-5 w-5" />
-        </button>
-        <button className="h-10 w-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
-          <MapIcon className="h-5 w-5" />
         </button>
       </div>
 
