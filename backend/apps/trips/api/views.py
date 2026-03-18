@@ -58,10 +58,17 @@ class TripPlanView(APIView):
         headers = {'Authorization': str(api_key), 'Content-Type': 'application/json'}
         try:
             ors_resp = requests.post(ors_url, json=body, headers=headers, timeout=15)
-            ors_resp.raise_for_status()
+            if not ors_resp.ok:
+                try:
+                    err_data = ors_resp.json()
+                    err_msg = err_data.get('error', {}).get('message', ors_resp.text)
+                except Exception:
+                    err_msg = ors_resp.text
+                return Response({'error': f"Routing service failed: {err_msg}"}, status=status.HTTP_400_BAD_REQUEST)
+            
             route_data = ors_resp.json()
         except Exception as e:
-            return Response({'error': f"Routing service failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': f"Routing service connection failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         # 2. Extract distance and duration
         try:

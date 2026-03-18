@@ -6,6 +6,8 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { tripSchema, type TripFormValues, type TripPlan } from "../types"
 import { LocationAutocomplete } from "./LocationAutocomplete"
 import { api } from "@/lib/axios"
+import { toast } from "sonner"
+import axios from "axios"
 
 interface TripCreateModalProps {
   isOpen: boolean
@@ -16,6 +18,52 @@ interface TripCreateModalProps {
 interface Coordinate {
   lat: number
   lng: number
+}
+
+/** Parse the most useful message from an Axios error response */
+function parseApiError(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    // Network / connection failures
+    if (!error.response) {
+      if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
+        return "Request timed out. The routing service may be slow — please try again."
+      }
+      return "Cannot reach the server. Check that the backend is running and your internet is connected."
+    }
+
+    const status = error.response.status
+    const data = error.response.data as Record<string, unknown> | undefined
+
+    // Backend returned a structured { error: "..." } message
+    if (data && typeof data.error === "string") {
+      const msg = data.error.toLowerCase()
+
+      if (msg.includes("routable point") || msg.includes("radius")) {
+        return "One or more of your locations is too far from a routable road. Try selecting a nearby city or major address."
+      }
+      if (msg.includes("api key") || msg.includes("unauthorized") || status === 401 || status === 403) {
+        return "Routing service authentication failed. Please contact support."
+      }
+      if (msg.includes("quota") || msg.includes("rate limit") || status === 429) {
+        return "Routing service rate limit reached. Please wait a moment and try again."
+      }
+      if (msg.includes("openroute") || msg.includes("routing service")) {
+        return `Routing error: ${data.error}`
+      }
+      // Generic backend error message
+      return data.error
+    }
+
+    if (status === 400) return "Invalid request. Check that all locations are valid."
+    if (status === 500) return "Server error while planning the trip. Please try again."
+    if (status === 503) return "Routing service is temporarily unavailable. Try again shortly."
+
+    return `Unexpected error (${status}). Please try again.`
+  }
+
+  // Non-axios unknown error
+  if (error instanceof Error) return error.message
+  return "An unexpected error occurred. Please try again."
 }
 
 export function TripCreateModal({ isOpen, onClose, onSubmit }: TripCreateModalProps) {
@@ -36,26 +84,33 @@ export function TripCreateModal({ isOpen, onClose, onSubmit }: TripCreateModalPr
 
   const handleSubmit = async (values: TripFormValues) => {
     if (!currentCoord || !pickupCoord || !dropoffCoord) {
-      console.error("Please select all locations from the dropdown")
+      toast.warning("Select all locations", {
+        description: "Please choose your Current Location, Origin, and Destination from the dropdown suggestions.",
+      })
       return
     }
 
     setIsPlanning(true)
+    const toastId = toast.loading("Planning your trip…", {
+      description: "Calculating route and HOS schedule.",
+    })
+
     const tripData = {
       current_location: currentCoord,
       pickup: pickupCoord,
       dropoff: dropoffCoord,
-      cycle_used: Number(values.cycleHoursUsed)
+      cycle_used: Number(values.cycleHoursUsed),
     }
-    
+
     try {
-      console.log("Planning trip with backend...")
       const response = await api.post("/trips/plan/", tripData)
       const plan: TripPlan = response.data
-      
-      console.log("HOS PLAN GENERATED SUCCESS:", plan)
-      
-      // Close modal and pass result back
+
+      toast.success("Trip planned!", {
+        id: toastId,
+        description: `${plan.summary.total_km} km · ${plan.summary.driving_hours}h driving · ${plan.summary.estimated_days} day(s)`,
+      })
+
       onSubmit(values, plan)
       form.reset()
       setCurrentCoord(null)
@@ -63,7 +118,12 @@ export function TripCreateModal({ isOpen, onClose, onSubmit }: TripCreateModalPr
       setDropoffCoord(null)
       onClose()
     } catch (error) {
-      console.error("Failed to generate trip plan:", error)
+      const message = parseApiError(error)
+      toast.error("Could not plan trip", {
+        id: toastId,
+        description: message,
+        duration: 6000,
+      })
     } finally {
       setIsPlanning(false)
     }
