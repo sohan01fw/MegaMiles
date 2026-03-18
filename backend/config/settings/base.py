@@ -42,9 +42,10 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 # ── Middleware ────────────────────────────────────────────────────────────────
 MIDDLEWARE = [
-    # corsheaders MUST come before CommonMiddleware
+    # corsheaders MUST come before everything for preflight success
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

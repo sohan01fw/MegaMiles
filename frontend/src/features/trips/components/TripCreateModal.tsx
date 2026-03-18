@@ -1,16 +1,29 @@
+import { useState } from "react"
 import { Compass, MapPin, X } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
-import { tripSchema, type TripFormValues } from "../types"
+import { tripSchema, type TripFormValues, type TripPlan } from "../types"
+import { LocationAutocomplete } from "./LocationAutocomplete"
+import { api } from "@/lib/axios"
 
 interface TripCreateModalProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (values: TripFormValues) => void
+  onSubmit: (values: TripFormValues, plan?: TripPlan) => void
+}
+
+interface Coordinate {
+  lat: number
+  lng: number
 }
 
 export function TripCreateModal({ isOpen, onClose, onSubmit }: TripCreateModalProps) {
+  const [currentCoord, setCurrentCoord] = useState<Coordinate | null>(null)
+  const [pickupCoord, setPickupCoord] = useState<Coordinate | null>(null)
+  const [dropoffCoord, setDropoffCoord] = useState<Coordinate | null>(null)
+  const [isPlanning, setIsPlanning] = useState(false)
+
   const form = useForm<TripFormValues>({
     resolver: zodResolver(tripSchema),
     defaultValues: {
@@ -21,9 +34,39 @@ export function TripCreateModal({ isOpen, onClose, onSubmit }: TripCreateModalPr
     },
   })
 
-  const handleSubmit = (values: TripFormValues) => {
-    onSubmit(values)
-    form.reset()
+  const handleSubmit = async (values: TripFormValues) => {
+    if (!currentCoord || !pickupCoord || !dropoffCoord) {
+      console.error("Please select all locations from the dropdown")
+      return
+    }
+
+    setIsPlanning(true)
+    const tripData = {
+      current_location: currentCoord,
+      pickup: pickupCoord,
+      dropoff: dropoffCoord,
+      cycle_used: Number(values.cycleHoursUsed)
+    }
+    
+    try {
+      console.log("Planning trip with backend...")
+      const response = await api.post("/trips/plan/", tripData)
+      const plan: TripPlan = response.data
+      
+      console.log("HOS PLAN GENERATED SUCCESS:", plan)
+      
+      // Close modal and pass result back
+      onSubmit(values, plan)
+      form.reset()
+      setCurrentCoord(null)
+      setPickupCoord(null)
+      setDropoffCoord(null)
+      onClose()
+    } catch (error) {
+      console.error("Failed to generate trip plan:", error)
+    } finally {
+      setIsPlanning(false)
+    }
   }
 
   if (!isOpen) return null
@@ -49,7 +92,7 @@ export function TripCreateModal({ isOpen, onClose, onSubmit }: TripCreateModalPr
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            <div className="space-y-4">
+            <div className="space-y-4 text-left">
               <FormField
                 control={form.control}
                 name="currentLocation"
@@ -57,14 +100,17 @@ export function TripCreateModal({ isOpen, onClose, onSubmit }: TripCreateModalPr
                   <FormItem>
                     <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Current Geo</p>
                     <FormControl>
-                      <div className="relative group">
-                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-purple-500 transition-colors" />
-                        <input 
-                          placeholder="City, State..." 
-                          className="w-full h-12 bg-slate-50 border border-slate-200 focus:bg-white focus:border-purple-200 focus:ring-4 focus:ring-purple-100/50 rounded-2xl pl-11 pr-4 text-sm outline-none transition-all placeholder:text-slate-400"
-                          {...field} 
-                        />
-                      </div>
+                      <LocationAutocomplete 
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Current city, state..."
+                        icon={<MapPin className="h-4 w-4" />}
+                        onSelect={(loc) => {
+                          field.onChange(loc.label)
+                          setCurrentCoord({ lat: loc.lat, lng: loc.lng })
+                          console.log("Selected Current Location:", loc)
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -79,14 +125,17 @@ export function TripCreateModal({ isOpen, onClose, onSubmit }: TripCreateModalPr
                     <FormItem>
                       <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Origin</p>
                       <FormControl>
-                        <div className="relative group">
-                          <Compass className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-purple-500 transition-colors" />
-                          <input 
-                            placeholder="Pickup location..." 
-                            className="w-full h-12 bg-slate-50 border border-slate-200 focus:bg-white focus:border-purple-200 focus:ring-4 focus:ring-purple-100/50 rounded-2xl pl-11 pr-4 text-sm outline-none transition-all placeholder:text-slate-400"
-                            {...field} 
-                          />
-                        </div>
+                        <LocationAutocomplete 
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Pickup location..."
+                          icon={<Compass className="h-4 w-4" />}
+                          onSelect={(loc) => {
+                            field.onChange(loc.label)
+                            setPickupCoord({ lat: loc.lat, lng: loc.lng })
+                            console.log("Selected Pickup Location:", loc)
+                          }}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -99,14 +148,17 @@ export function TripCreateModal({ isOpen, onClose, onSubmit }: TripCreateModalPr
                     <FormItem>
                       <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Destination</p>
                       <FormControl>
-                        <div className="relative group">
-                          <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-purple-500 transition-colors" />
-                          <input 
-                            placeholder="Dropoff point..." 
-                            className="w-full h-12 bg-slate-50 border border-slate-200 focus:bg-white focus:border-purple-200 focus:ring-4 focus:ring-purple-100/50 rounded-2xl pl-11 pr-4 text-sm outline-none transition-all placeholder:text-slate-400"
-                            {...field} 
-                          />
-                        </div>
+                        <LocationAutocomplete 
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Dropoff point..."
+                          icon={<MapPin className="h-4 w-4" />}
+                          onSelect={(loc) => {
+                            field.onChange(loc.label)
+                            setDropoffCoord({ lat: loc.lat, lng: loc.lng })
+                            console.log("Selected Dropoff Location:", loc)
+                          }}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -144,19 +196,47 @@ export function TripCreateModal({ isOpen, onClose, onSubmit }: TripCreateModalPr
                 type="button"
                 onClick={onClose}
                 className="flex-1 h-12 bg-slate-50 text-slate-600 font-semibold rounded-2xl hover:bg-slate-100 transition-colors"
+                disabled={isPlanning}
               >
                 Cancel
               </button>
               <button 
                 type="submit" 
                 className="flex-1 h-12 bg-slate-900 text-white font-semibold rounded-2xl hover:bg-slate-800 transition-all transform active:scale-[0.98] shadow-lg shadow-slate-900/10 flex items-center justify-center gap-2"
+                disabled={isPlanning}
               >
-                Plan Trip
+                {isPlanning ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Planning...
+                  </>
+                ) : (
+                  "Plan Trip"
+                )}
               </button>
             </div>
           </form>
         </Form>
       </div>
     </div>
+  )
+}
+
+function Loader2({ className }: { className?: string }) {
+  return (
+    <svg 
+      className={className}
+      xmlns="http://www.w3.org/2000/svg" 
+      width="24" 
+      height="24" 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    >
+      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+    </svg>
   )
 }

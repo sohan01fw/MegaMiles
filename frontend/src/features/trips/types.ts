@@ -13,8 +13,28 @@ export const tripSchema = z.object({
 })
 
 export type TripFormValues = z.infer<typeof tripSchema>
+
+export interface TripLog {
+  day: number
+  action: string
+  duration_hrs: number
+  remaining_trip_hrs?: number
+}
+
+export interface TripPlan {
+  summary: {
+    total_miles: number
+    driving_hours: number
+    estimated_days: number
+    cycle_remaining_after: number
+  }
+  daily_logs: TripLog[]
+  route_geometry: string
+}
+
 export type Trip = TripFormValues & { 
   id: string; 
   createdAt: Date;
   status: "planned" | "active" | "completed";
+  plan?: TripPlan;
 }

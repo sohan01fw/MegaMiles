@@ -14,5 +14,6 @@ urlpatterns = [
     # path("users/",  include("apps.users.urls",  namespace="users")),
 
     # Trips – core business domain
-    # path("trips/",  include("apps.trips.urls",  namespace="trips")),
+    path("trips/",  include("apps.trips.urls",  namespace="trips")),
 ]
+

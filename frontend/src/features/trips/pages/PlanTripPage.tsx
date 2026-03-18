@@ -8,7 +8,7 @@ import { TripOverview } from "../components/TripOverview"
 import { DashboardGreeting } from "../components/DashboardGreeting"
 import { TripCreateModal } from "../components/TripCreateModal"
 import { RightSidebarFreight } from "../components/RightSidebarFreight"
-import type { Trip, TripFormValues } from "../types"
+import type { Trip, TripFormValues, TripPlan } from "../types"
 
 export function PlanTripPage() {
   const [trips, setTrips] = useState<Trip[]>([])
@@ -18,12 +18,13 @@ export function PlanTripPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isOverviewOpen, setIsOverviewOpen] = useState(false)
 
-  const handleCreateTrip = (values: TripFormValues) => {
+  const handleCreateTrip = (values: TripFormValues, plan?: TripPlan) => {
     const newTrip: Trip = {
       ...values,
       id: crypto.randomUUID(),
       createdAt: new Date(),
       status: "planned",
+      plan,
     }
     setTrips([newTrip, ...trips])
     setSelectedTripId(newTrip.id)
