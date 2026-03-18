@@ -1,6 +1,8 @@
-import { Map as MapIcon, CircleDot, MapPin, Clock, Compass, CheckCircle2, X, Navigation, CalendarDays, Zap } from "lucide-react"
+import { useState } from "react"
+import { Map as MapIcon, CircleDot, MapPin, Clock, Compass, CheckCircle2, X, Navigation, CalendarDays, Zap, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Trip } from "../types"
+import { LogSheetModal } from "./LogSheetModal"
 
 interface TripActiveSidebarProps {
   trip: Trip
@@ -10,17 +12,29 @@ interface TripActiveSidebarProps {
 
 export function TripActiveSidebar({ trip, onUpdateStatus, onClose }: TripActiveSidebarProps) {
   const plan = trip.plan
+  const [isLogOpen, setIsLogOpen] = useState(false)
 
   return (
     <div className="flex flex-col h-full bg-white animate-in slide-in-from-left-8 duration-300">
       {/* Header */}
       <div className="p-6 border-b border-slate-100 relative">
-        <button 
-          onClick={onClose}
-          className="absolute top-6 right-6 h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:text-slate-700 hover:bg-slate-200 transition-colors"
-        >
-          <X className="h-4 w-4" />
-        </button>
+        <div className="absolute top-6 right-6 flex items-center gap-2 z-10">
+          {plan && (
+            <button 
+              onClick={() => setIsLogOpen(true)}
+              className="flex items-center gap-2 bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full hover:bg-slate-200 transition-colors text-xs font-bold shadow-sm"
+              title="View Daily Logs"
+            >
+              <FileText className="h-3 w-3" /> Logs
+            </button>
+          )}
+          <button 
+            onClick={onClose}
+            className="h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:text-slate-700 hover:bg-slate-200 transition-colors shadow-sm"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
         <div className="flex items-center gap-3 mb-1">
           <div className="p-2 bg-orange-50 text-orange-600 rounded-xl">
             <MapIcon className="h-5 w-5" />
@@ -128,6 +142,14 @@ export function TripActiveSidebar({ trip, onUpdateStatus, onClose }: TripActiveS
 
         </div>
       </div>
+
+      {plan && (
+        <LogSheetModal 
+          trip={trip}
+          isOpen={isLogOpen}
+          onClose={() => setIsLogOpen(false)}
+        />
+      )}
     </div>
   )
 }

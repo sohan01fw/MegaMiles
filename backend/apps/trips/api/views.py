@@ -111,6 +111,10 @@ class TripPlanView(APIView):
         day_num: int = 1
         rem_d: float = float(total_h)
         
+        # Pre-trip and Loading
+        hos_logs.append({"day": day_num, "action": "Pre-Trip Inspection & Loading", "duration_hrs": 0.5, "status": "ON_DUTY"})
+        w_left = float(w_left - 0.5)
+
         while rem_d > 0.001:
             can_drive: float = float(min(rem_d, d_left, w_left, (8.0 - sb)))
             
@@ -119,7 +123,8 @@ class TripPlanView(APIView):
                     "day": day_num,
                     "action": "Driving",
                     "duration_hrs": float("{:.2f}".format(can_drive)),
-                    "remaining_trip_hrs": float("{:.2f}".format(rem_d - can_drive))
+                    "remaining_trip_hrs": float("{:.2f}".format(rem_d - can_drive)),
+                    "status": "DRIVING"
                 })
                 
                 rem_d = float(rem_d - can_drive)
@@ -131,16 +136,20 @@ class TripPlanView(APIView):
                 break
                 
             if sb >= 7.99:
-                hos_logs.append({"day": day_num, "action": "30-Min Rest Break", "duration_hrs": 0.5})
+                hos_logs.append({"day": day_num, "action": "30-Min Rest Break", "duration_hrs": 0.5, "status": "OFF_DUTY"})
                 w_left = float(w_left - 0.5)
                 sb = 0.0
                 
             if d_left <= 0.001 or w_left <= 0.5:
-                hos_logs.append({"day": day_num, "action": "10-Hour Sleep / Off-Duty", "duration_hrs": 10.0})
+                # Add 10 hour sleeper
+                hos_logs.append({"day": day_num, "action": "10-Hour Sleep / Off-Duty", "duration_hrs": 10.0, "status": "SLEEPER"})
                 day_num += 1
                 d_left = 11.0
                 w_left = 14.0
                 sb = 0.0
+
+        # Post-trip and Unloading
+        hos_logs.append({"day": day_num, "action": "Dropoff & Post-Trip", "duration_hrs": 0.5, "status": "ON_DUTY"})
 
         cyc_rem = max(0.0, 70.0 - (cycle_used + total_h))
         triplan = {

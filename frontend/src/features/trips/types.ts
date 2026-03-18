@@ -19,6 +19,7 @@ export interface TripLog {
   action: string
   duration_hrs: number
   remaining_trip_hrs?: number
+  status?: "ON_DUTY" | "DRIVING" | "OFF_DUTY" | "SLEEPER"
 }
 
 export interface TripPlan {

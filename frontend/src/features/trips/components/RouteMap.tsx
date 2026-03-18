@@ -91,7 +91,7 @@ export function RouteMap({ geometry, logs, pickupCoord, dropoffCoord, className 
       markersRef.current = []
 
       // Add Current Location Marker
-      const currentLocMarker = new maptiler.Marker({ color: "#3b82f6" }) // Blue
+      const currentLocMarker = new maptiler.Marker({ color: "#000000" }) // Black
         .setLngLat(coordinates[0] as [number, number])
         .setPopup(new maptiler.Popup({ offset: 25 }).setHTML('<div style="padding: 4px;"><h3 style="font-weight: bold; margin-bottom: 2px;">Start Position</h3></div>'))
         .addTo(currentMap)
@@ -99,7 +99,7 @@ export function RouteMap({ geometry, logs, pickupCoord, dropoffCoord, className 
 
       // Add Start Marker (Pickup)
       const p_pos: [number, number] = pickupCoord ? [pickupCoord.lng, pickupCoord.lat] : (coordinates[Math.floor(coordinates.length * 0.1)] as [number, number]);
-      const startMarker = new maptiler.Marker({ color: "#10b981" }) // Green
+      const startMarker = new maptiler.Marker({ color: "#22c55e" }) // Bright Green
         .setLngLat(p_pos)
         .setPopup(new maptiler.Popup({ offset: 25 }).setHTML('<div style="padding: 4px;"><h3 style="font-weight: bold; margin-bottom: 2px;">Pickup Point</h3><p style="font-size: 12px; color: #666;">Load Location</p></div>'))
         .addTo(currentMap)
@@ -107,7 +107,7 @@ export function RouteMap({ geometry, logs, pickupCoord, dropoffCoord, className 
 
       // Add End Marker (Dropoff)
       const d_pos: [number, number] = dropoffCoord ? [dropoffCoord.lng, dropoffCoord.lat] : (coordinates[coordinates.length - 1] as [number, number]);
-      const endMarker = new maptiler.Marker({ color: "#ef4444" }) // Red
+      const endMarker = new maptiler.Marker({ color: "#ef4444" }) // Bright Red
         .setLngLat(d_pos)
         .setPopup(new maptiler.Popup({ offset: 25 }).setHTML('<div style="padding: 4px;"><h3 style="font-weight: bold; margin-bottom: 2px;">Dropoff Point</h3><p style="font-size: 12px; color: #666;">Route Destination</p></div>'))
         .addTo(currentMap)
@@ -124,7 +124,7 @@ export function RouteMap({ geometry, logs, pickupCoord, dropoffCoord, className 
         logs.forEach(log => {
           if (log.action === "Driving") {
             cumulativeDriving += log.duration_hrs
-          } else {
+          } else if (log.action.includes("Break") || log.action.includes("Sleep")) {
             // Find coordinate fraction
             const fraction = totalDrivingTime > 0 ? cumulativeDriving / totalDrivingTime : 0
             const index = Math.min(Math.floor(fraction * coordinates.length), coordinates.length - 1)
@@ -132,12 +132,11 @@ export function RouteMap({ geometry, logs, pickupCoord, dropoffCoord, className 
             
             if (coord && currentMap) {
               const isSleep = log.action.includes("Sleep")
-              const markerColor = isSleep ? "#f97316" : "#eab308" // Orange for sleep, Yellow for break
-              const actionLabel = isSleep ? "Sleep & Fuel Stop" : "Fuel & Rest Break"
+              const markerColor = isSleep ? "#6366f1" : "#f59e0b" // Indigo for sleep, Amber for break
               
               const popupHTML = `
                 <div style="padding: 4px;">
-                  <h3 style="font-weight: bold; margin-bottom: 2px;">${actionLabel}</h3>
+                  <h3 style="font-weight: bold; margin-bottom: 2px;">${log.action}</h3>
                   <p style="font-size: 12px; color: #666;">Day ${log.day} • ${log.duration_hrs}h Duration</p>
                 </div>
               `

@@ -1,7 +1,9 @@
-import { Map as MapIcon, CircleDot, MapPin, Clock, Compass, Play, CheckCircle2, X, Navigation, CalendarDays, Zap } from "lucide-react"
+import { useState } from "react"
+import { Map as MapIcon, CircleDot, MapPin, Clock, Compass, Play, CheckCircle2, X, Navigation, CalendarDays, Zap, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Trip } from "../types"
 import { RouteMap } from "./RouteMap"
+import { LogSheetModal } from "./LogSheetModal"
 
 interface TripOverviewProps {
   trip: Trip
@@ -11,6 +13,7 @@ interface TripOverviewProps {
 
 export function TripOverview({ trip, onUpdateStatus, onClose }: TripOverviewProps) {
   const plan = trip.plan
+  const [isLogOpen, setIsLogOpen] = useState(false)
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 mt-auto mb-auto relative w-full">
@@ -33,6 +36,14 @@ export function TripOverview({ trip, onUpdateStatus, onClose }: TripOverviewProp
         </div>
         
         <div className="flex items-center gap-3">
+          {plan && (trip.status === "active" || trip.status === "completed") && (
+            <button 
+              onClick={() => setIsLogOpen(true)}
+              className="flex items-center gap-2 border border-slate-200 bg-white text-slate-700 font-semibold px-4 py-2.5 rounded-2xl hover:bg-slate-50 transition-colors shadow-sm"
+            >
+              <FileText className="h-4 w-4" /> View Daily Logs
+            </button>
+          )}
           {trip.status === "planned" && (
             <button 
               onClick={() => onUpdateStatus("active")}
@@ -232,6 +243,15 @@ export function TripOverview({ trip, onUpdateStatus, onClose }: TripOverviewProp
             </div>
           </div>
         </div>
+      )}
+
+      {/* Daily Logs Print Modal */}
+      {plan && (
+        <LogSheetModal 
+          trip={trip}
+          isOpen={isLogOpen}
+          onClose={() => setIsLogOpen(false)}
+        />
       )}
     </div>
   )
