@@ -23,10 +23,12 @@ export interface TripLog {
 
 export interface TripPlan {
   summary: {
-    total_miles: number
+    total_km: number
     driving_hours: number
     estimated_days: number
     cycle_remaining_after: number
+    pickup_coord: { lat: number; lng: number }
+    dropoff_coord: { lat: number; lng: number }
   }
   daily_logs: TripLog[]
   route_geometry: string

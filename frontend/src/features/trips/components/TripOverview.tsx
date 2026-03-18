@@ -129,7 +129,7 @@ export function TripOverview({ trip, onUpdateStatus, onClose }: TripOverviewProp
                   </div>
                   <div>
                     <p className="text-[10px] font-bold text-purple-400 uppercase tracking-widest">Distance</p>
-                    <p className="text-lg font-bold text-purple-900">{plan.summary.total_miles} mi</p>
+                    <p className="text-lg font-bold text-purple-900">{plan.summary.total_km} km</p>
                   </div>
                 </div>
                 <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 flex items-center gap-4">
@@ -147,7 +147,13 @@ export function TripOverview({ trip, onUpdateStatus, onClose }: TripOverviewProp
           
           <div className="relative">
             {plan?.route_geometry ? (
-              <RouteMap geometry={plan.route_geometry} className="w-full h-[400px]" />
+              <RouteMap 
+                geometry={plan.route_geometry} 
+                logs={plan.daily_logs}
+                pickupCoord={plan.summary.pickup_coord}
+                dropoffCoord={plan.summary.dropoff_coord}
+                className="w-full h-[400px]" 
+              />
             ) : (
               <div className="w-full h-[400px] bg-slate-100 rounded-3xl flex items-center justify-center border-2 border-dashed border-slate-200">
                 <div className="text-center">

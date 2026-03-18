@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils"
 import { SidebarPrimary } from "../components/SidebarPrimary"
 import { TripsSidebar } from "../components/TripsSidebar"
 import { TripOverview } from "../components/TripOverview"
+import { TripActiveSidebar } from "../components/TripActiveSidebar"
+import { RouteMap } from "../components/RouteMap"
 import { DashboardGreeting } from "../components/DashboardGreeting"
 import { TripCreateModal } from "../components/TripCreateModal"
 import { RightSidebarFreight } from "../components/RightSidebarFreight"
@@ -61,35 +63,66 @@ export function PlanTripPage() {
       />
 
       <main className="flex-1 flex flex-col bg-[#fcfcfc] relative">
-        <header className="px-8 py-5 flex items-center justify-between border-b border-transparent">
-          <div className="flex items-center gap-3" />
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 border border-slate-200 bg-white px-3 py-1.5 rounded-full text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
-            >
-              <Calendar className="h-4 w-4" />
-              Create a Trip
-            </button>
-
-            <button className="flex items-center gap-2 border border-slate-200 bg-white px-3 py-1.5 rounded-full text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors shadow-sm">
-              <img
-                src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg"
-                alt="US"
-                className="h-4 w-4 rounded-full object-cover"
+        {selectedTrip?.status === "active" ? (
+          <div className="flex-1 flex overflow-hidden w-full h-full relative">
+            {/* Sidebar for the Active Trip (resembling Google Maps side panel) */}
+            <div className="w-[380px] h-full shrink-0 z-20 shadow-2xl border-r border-slate-200">
+              <TripActiveSidebar 
+                trip={selectedTrip}
+                onUpdateStatus={(status) => handleUpdateStatus(selectedTrip.id, status)}
+                onClose={() => setSelectedTripId(null)}
               />
-              English <MoreVertical className="h-4 w-4 opacity-50 -ml-1" />
-            </button>
+            </div>
+            {/* Full scale Map taking the rest of the main container */}
+            <div className="flex-1 h-full z-10 relative bg-slate-100">
+              {selectedTrip.plan?.route_geometry ? (
+                <RouteMap 
+                  geometry={selectedTrip.plan.route_geometry} 
+                  logs={selectedTrip.plan.daily_logs} 
+                  pickupCoord={selectedTrip.plan.summary.pickup_coord}
+                  dropoffCoord={selectedTrip.plan.summary.dropoff_coord}
+                  className="w-full h-full rounded-none border-none" 
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                   <p className="text-slate-400 font-medium tracking-wide">Map view unavailable for this route.</p>
+                </div>
+              )}
+            </div>
           </div>
-        </header>
+        ) : (
+          <>
+            <header className="px-8 py-5 flex items-center justify-between border-b border-transparent">
+              <div className="flex items-center gap-3" />
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setIsModalOpen(true)}
+                  className="flex items-center gap-2 border border-slate-200 bg-white px-3 py-1.5 rounded-full text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
+                >
+                  <Calendar className="h-4 w-4" />
+                  Create a Trip
+                </button>
 
-        <div className="flex-1 overflow-y-auto px-8 lg:px-12 flex flex-col pb-24 relative">
-          <div className="flex flex-col max-w-5xl mx-auto w-full pt-8 lg:pt-16 pb-12 flex-1">
-            <DashboardGreeting />
-          </div>
-        </div>
-        
-        <RightSidebarFreight />
+                <button className="flex items-center gap-2 border border-slate-200 bg-white px-3 py-1.5 rounded-full text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors shadow-sm">
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg"
+                    alt="US"
+                    className="h-4 w-4 rounded-full object-cover"
+                  />
+                  English <MoreVertical className="h-4 w-4 opacity-50 -ml-1" />
+                </button>
+              </div>
+            </header>
+
+            <div className="flex-1 overflow-y-auto px-8 lg:px-12 flex flex-col pb-24 relative">
+              <div className="flex flex-col max-w-5xl mx-auto w-full pt-8 lg:pt-16 pb-12 flex-1">
+                <DashboardGreeting />
+              </div>
+            </div>
+            
+            <RightSidebarFreight />
+          </>
+        )}
       </main>
 
       <TripCreateModal 
@@ -98,7 +131,7 @@ export function PlanTripPage() {
         onSubmit={handleCreateTrip}
       />
 
-      {selectedTrip && (
+      {selectedTrip && selectedTrip.status !== "active" && (
         <div 
           className={cn(
             "fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-all duration-300",

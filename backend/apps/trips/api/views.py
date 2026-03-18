@@ -67,14 +67,40 @@ class TripPlanView(APIView):
         try:
             res_r = route_data['routes'][0]
             summ = res_r['summary']
+            segs = res_r.get('segments', [])
+            
+            # The pickup point is at the end of the first segment (Current -> Pickup)
+            pickup_idx = 0
+            if len(segs) > 0:
+                pickup_idx = segs[0].get('steps', [])[-1].get('way_points', [0])[1] if segs[0].get('steps') else 0
+                # Alternatively, just use the sum of waypoint counts or similar
+                # ORS v2 directions response has 'way_points' in steps.
+                # A simpler way: segments[0] corresponds to point 0 to point 1.
+                # But 'segments' in ORS v2 just gives total distance/duration per segment.
+                # To find the index in the geometry 'coordinates' list:
+                pickup_idx = 0
+                curr_coord_idx = 0
+                for seg in segs:
+                    # This is slightly complex to map exactly without 'extra_info'
+                    pass
+            
+            # Simplified: Use the waypoint indices if available in metadata
+            meta = route_data.get('metadata', {})
+            query = meta.get('query', {})
+            wp_idx = query.get('waypoint_indices', [0, 0, 0])
+            # Wait, ORS v2 returns waypoints in the summary sometimes? No.
+            # Let's just use the segment summary to be safe or manually find it.
+            
             dist_met: float = float(summ.get('distance', 0.0))
-            dur_sec: float = float(summ.get('duration', 0.0))
+            dur_sec_raw: float = float(summ.get('duration', 0.0))
             geom = res_r['geometry']
         except (KeyError, IndexError, TypeError):
             return Response({'error': 'Failed to parse route summary'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        total_mi: float = float(dist_met * 0.000621371)
-        total_h: float = float(dur_sec / 3600.0)
+        # Apply Speed Correction Factor (1.6x) for realism in regions like Nepal
+        CORRECTION_FACTOR = 1.6
+        total_km: float = float(dist_met / 1000.0)
+        total_h: float = float((dur_sec_raw / 3600.0) * CORRECTION_FACTOR)
 
         # 3. HOS Calculation & Daily Log Generation
         hos_logs: List[Dict[str, Any]] = []
@@ -119,10 +145,12 @@ class TripPlanView(APIView):
         cyc_rem = max(0.0, 70.0 - (cycle_used + total_h))
         triplan = {
             "summary": {
-                "total_miles": float("{:.2f}".format(total_mi)),
+                "total_km": float("{:.2f}".format(total_km)),
                 "driving_hours": float("{:.2f}".format(total_h)),
                 "estimated_days": day_num,
-                "cycle_remaining_after": float("{:.2f}".format(cyc_rem))
+                "cycle_remaining_after": float("{:.2f}".format(cyc_rem)),
+                "pickup_coord": {"lat": p_lat, "lng": p_lng},
+                "dropoff_coord": {"lat": d_lat, "lng": d_lng}
             },
             "daily_logs": hos_logs,
             "route_geometry": geom
