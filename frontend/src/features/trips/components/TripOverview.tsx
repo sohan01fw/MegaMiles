@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Map as MapIcon, CircleDot, MapPin, Clock, Compass, Play, CheckCircle2, X, Navigation, CalendarDays, Zap, FileText } from "lucide-react"
+import { Map as MapIcon, CircleDot, MapPin, Clock, Compass, Play, CheckCircle2, X, Navigation, CalendarDays, Zap, FileText, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Trip } from "../types"
 import { RouteMap } from "./RouteMap"
@@ -8,10 +8,11 @@ import { LogSheetModal } from "./LogSheetModal"
 interface TripOverviewProps {
   trip: Trip
   onUpdateStatus: (status: "planned" | "active" | "completed") => void
+  onDelete: (id: string) => void
   onClose?: () => void
 }
 
-export function TripOverview({ trip, onUpdateStatus, onClose }: TripOverviewProps) {
+export function TripOverview({ trip, onUpdateStatus, onDelete, onClose }: TripOverviewProps) {
   const plan = trip.plan
   const [isLogOpen, setIsLogOpen] = useState(false)
 
@@ -58,6 +59,15 @@ export function TripOverview({ trip, onUpdateStatus, onClose }: TripOverviewProp
               className="flex items-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-2xl font-semibold shadow-lg shadow-green-200 hover:bg-green-700 transition-all transform active:scale-95"
             >
               <CheckCircle2 className="h-4 w-4" /> End Trip
+            </button>
+          )}
+          {(trip.status === "planned" || trip.status === "completed") && (
+            <button 
+              onClick={() => onDelete(trip.id)}
+              className="flex items-center gap-2 border border-red-100 bg-red-50 text-red-600 font-semibold px-4 py-2.5 rounded-2xl hover:bg-red-100 transition-colors shadow-sm"
+              title="Delete Trip"
+            >
+              <Trash2 className="h-4 w-4" /> Delete
             </button>
           )}
         </div>

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Map as MapIcon, CircleDot, MapPin, Clock, Compass, CheckCircle2, X, Navigation, CalendarDays, Zap, FileText } from "lucide-react"
+import { Map as MapIcon, CircleDot, MapPin, Clock, Compass, CheckCircle2, X, Navigation, CalendarDays, Zap, FileText, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Trip } from "../types"
 import { LogSheetModal } from "./LogSheetModal"
@@ -7,10 +7,11 @@ import { LogSheetModal } from "./LogSheetModal"
 interface TripActiveSidebarProps {
   trip: Trip
   onUpdateStatus: (status: "planned" | "active" | "completed") => void
+  onDelete: (id: string) => void
   onClose: () => void
 }
 
-export function TripActiveSidebar({ trip, onUpdateStatus, onClose }: TripActiveSidebarProps) {
+export function TripActiveSidebar({ trip, onUpdateStatus, onDelete, onClose }: TripActiveSidebarProps) {
   const plan = trip.plan
   const [isLogOpen, setIsLogOpen] = useState(false)
 
@@ -51,6 +52,13 @@ export function TripActiveSidebar({ trip, onUpdateStatus, onClose }: TripActiveS
              className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md shadow-green-200 hover:bg-green-700 transition-all active:scale-95"
            >
              <CheckCircle2 className="h-4 w-4" /> Finish Trip
+           </button>
+           <button 
+             onClick={() => onDelete(trip.id)}
+             className="w-12 flex items-center justify-center bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors border border-red-100 active:scale-95"
+             title="Delete Trip"
+           >
+             <Trash2 className="h-4 w-4" />
            </button>
         </div>
       </div>

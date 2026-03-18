@@ -9,7 +9,6 @@ import { TripActiveSidebar } from "../components/TripActiveSidebar"
 import { RouteMap } from "../components/RouteMap"
 import { DashboardGreeting } from "../components/DashboardGreeting"
 import { TripCreateModal } from "../components/TripCreateModal"
-import { RightSidebarFreight } from "../components/RightSidebarFreight"
 import type { Trip, TripFormValues, TripPlan } from "../types"
 
 export function PlanTripPage() {
@@ -43,6 +42,13 @@ export function PlanTripPage() {
 
   const handleUpdateStatus = (id: string, status: "planned" | "active" | "completed") => {
     setTrips(trips.map(t => t.id === id ? { ...t, status } : t))
+    setActiveTab(status)
+  }
+
+  const handleDeleteTrip = (id: string) => {
+    setTrips(trips.filter(t => t.id !== id))
+    setSelectedTripId(null)
+    setIsOverviewOpen(false)
   }
 
   const selectedTrip = trips.find((t) => t.id === selectedTripId)
@@ -70,6 +76,7 @@ export function PlanTripPage() {
               <TripActiveSidebar 
                 trip={selectedTrip}
                 onUpdateStatus={(status) => handleUpdateStatus(selectedTrip.id, status)}
+                onDelete={handleDeleteTrip}
                 onClose={() => setSelectedTripId(null)}
               />
             </div>
@@ -116,11 +123,15 @@ export function PlanTripPage() {
 
             <div className="flex-1 overflow-y-auto px-8 lg:px-12 flex flex-col pb-24 relative">
               <div className="flex flex-col max-w-5xl mx-auto w-full pt-8 lg:pt-16 pb-12 flex-1">
-                <DashboardGreeting />
+                <DashboardGreeting 
+                  activeTrip={trips.find(t => t.status === "active")} 
+                  onExpandMap={() => {
+                    const active = trips.find(t => t.status === "active");
+                    if (active) handleSelectTrip(active.id);
+                  }}
+                />
               </div>
             </div>
-            
-            <RightSidebarFreight />
           </>
         )}
       </main>
@@ -150,6 +161,7 @@ export function PlanTripPage() {
                <TripOverview 
                   trip={selectedTrip} 
                   onUpdateStatus={(status) => handleUpdateStatus(selectedTrip.id, status)}
+                  onDelete={handleDeleteTrip}
                   onClose={() => setIsOverviewOpen(false)}
                 />
             </div>
