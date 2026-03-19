@@ -6,6 +6,8 @@ Production-specific settings.
 from .base import *  # noqa: F401, F403
 
 DEBUG = False
+ 
+ALLOWED_HOSTS = ["megamiles.onrender.com", "localhost", "127.0.0.1"]
 
 # Enforce HTTPS in production
 SECURE_SSL_REDIRECT = True
