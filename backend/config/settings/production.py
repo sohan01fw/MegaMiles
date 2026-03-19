@@ -8,6 +8,10 @@ from .base import *  # noqa: F401, F403
 DEBUG = False
  
 ALLOWED_HOSTS = ["megamiles.onrender.com", "localhost", "127.0.0.1"]
+ 
+CORS_ALLOWED_ORIGINS = [
+    "https://mega-miles.vercel.app",
+]
 
 # Enforce HTTPS in production
 SECURE_SSL_REDIRECT = True
