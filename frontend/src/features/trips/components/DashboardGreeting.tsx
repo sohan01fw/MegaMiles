@@ -187,7 +187,7 @@ export function DashboardGreeting({ activeTrip, onExpandMap }: DashboardGreeting
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
          <div className="group bg-white border border-slate-100 rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl hover:border-slate-200 transition-all duration-500 flex flex-col">
             <div className="h-44 overflow-hidden relative">
-               <img src="https://images.unsplash.com/photo-1584143431327-77887e07ebbf?q=80&w=600&auto=format&fit=crop" alt="Rest Area" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+               <img src="https://images.unsplash.com/photo-1561518776-e76a5e48f731?q=80&w=600&auto=format&fit=crop" alt="Rest Area" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                <div className="absolute top-3 left-3 px-3 py-1 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-bold text-slate-900 uppercase shadow-sm">Rest Areas</div>
             </div>
             <div className="p-5 flex-1 flex flex-col">

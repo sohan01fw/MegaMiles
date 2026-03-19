@@ -32,7 +32,7 @@ export function RightSidebarFreight() {
 
       <div className="space-y-4">
         <div className="group bg-white border border-slate-200 rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-shadow">
-          <img src="https://images.unsplash.com/photo-1584143431327-77887e07ebbf?q=80&w=600&auto=format&fit=crop" alt="Rest Area" className="w-full h-28 object-cover" />
+          <img src="https://images.unsplash.com/photo-1561518776-e76a5e48f731?q=80&w=600&auto=format&fit=crop" alt="Rest Area" className="w-full h-28 object-cover" />
           <div className="p-3">
             <p className="text-[13px] font-semibold text-slate-800 leading-tight">Best resting spots in Texas</p>
             <p className="text-[11px] text-slate-500 mt-1 line-clamp-2">A list of the top locations for heavy sleepers with great amenities.</p>
