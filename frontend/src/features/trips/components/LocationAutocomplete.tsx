@@ -1,17 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from "react"
-import axios from "axios"
+import { useState, useEffect, useRef } from "react"
 import { Search, Loader2, MapPin } from "lucide-react"
-
-interface Location {
-  label: string
-  lat: number
-  lng: number
-}
+import { useLocationSearch, type LocationSuggestion } from "../api/useLocationSearch"
 
 interface LocationAutocompleteProps {
   value: string
   onChange: (value: string) => void
-  onSelect: (location: Location) => void
+  onSelect: (location: LocationSuggestion) => void
   placeholder?: string
   icon?: React.ReactNode
   className?: string
@@ -25,11 +19,9 @@ export function LocationAutocomplete({
   icon,
   className 
 }: LocationAutocompleteProps) {
-  const [suggestions, setSuggestions] = useState<Location[]>([])
-  const [isLoading, setIsLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  const [debouncedValue, setDebouncedValue] = useState("")
   const containerRef = useRef<HTMLDivElement>(null)
-  const abortControllerRef = useRef<AbortController | null>(null)
 
   // Handle click outside to close dropdown
   useEffect(() => {
@@ -42,75 +34,22 @@ export function LocationAutocomplete({
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_API_KEY
-
-  const fetchSuggestions = useCallback(async (text: string) => {
-    if (!MAPTILER_KEY) {
-      console.warn("MapTiler API key is missing. Check VITE_MAPTILER_API_KEY in .env.local")
-      return
-    }
-
-    // Abort previous request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-    }
-    abortControllerRef.current = new AbortController()
-
-    setIsLoading(true)
-    try {
-      const resp = await axios.get(
-        `https://api.maptiler.com/geocoding/${encodeURIComponent(text)}.json`,
-        {
-          params: {
-            key: MAPTILER_KEY,
-            limit: 5,
-          },
-          signal: abortControllerRef.current.signal
-        }
-      )
-
-      const features = resp.data.features || []
-      const results = features.map((f: { place_name: string; center: number[] }) => ({
-        label: f.place_name || "Unknown Location",
-        lng: f.center?.[0] ?? 0,
-        lat: f.center?.[1] ?? 0,
-      })).filter((r: Location) => r.label !== "Unknown Location")
-
-      setSuggestions(results)
-    } catch (e: unknown) {
-      if (axios.isCancel(e)) return
-      console.error("Geocoding Error:", e)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [MAPTILER_KEY])
-
-  // Debounced fetch
+  // Debounce the input value for the query
   useEffect(() => {
-    if (!value || value.length < 2 || !isOpen) {
-      setSuggestions([])
-      setIsLoading(false)
-      return
-    }
-
     const timer = setTimeout(() => {
-      fetchSuggestions(value)
+      setDebouncedValue(!value || value.length < 2 || !isOpen ? "" : value)
     }, 300)
 
-    return () => {
-      clearTimeout(timer)
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
-      }
-    }
-  }, [value, isOpen, fetchSuggestions])
+    return () => clearTimeout(timer)
+  }, [value, isOpen])
 
+  const { data: suggestions = [], isLoading } = useLocationSearch(debouncedValue, isOpen)
 
   return (
     <div ref={containerRef} className="relative w-full">
       <div className="relative group">
         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-500 transition-colors pointer-events-none">
-          {isLoading ? (
+          {isLoading && isOpen ? (
             <Loader2 className="h-4 w-4 animate-spin text-purple-500" />
           ) : (
             icon || <Search className="h-4 w-4" />
@@ -147,7 +86,6 @@ export function LocationAutocomplete({
                   onClick={() => {
                     onSelect(s)
                     setIsOpen(false)
-                    setSuggestions([])
                   }}
                 >
                   <div className="mt-0.5 h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 group-hover/item:bg-purple-100 group-hover/item:text-purple-600 transition-colors">

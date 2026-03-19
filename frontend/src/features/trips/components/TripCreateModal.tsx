@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
 import { tripSchema, type TripFormValues, type TripPlan } from "../types"
 import { LocationAutocomplete } from "./LocationAutocomplete"
-import { api } from "@/lib/axios"
+import { usePlanTrip } from "../api/usePlanTrip"
 import { toast } from "sonner"
 import axios from "axios"
 
@@ -70,7 +70,8 @@ export function TripCreateModal({ isOpen, onClose, onSubmit }: TripCreateModalPr
   const [currentCoord, setCurrentCoord] = useState<Coordinate | null>(null)
   const [pickupCoord, setPickupCoord] = useState<Coordinate | null>(null)
   const [dropoffCoord, setDropoffCoord] = useState<Coordinate | null>(null)
-  const [isPlanning, setIsPlanning] = useState(false)
+
+  const { mutateAsync: planTrip, isPending: isPlanning } = usePlanTrip()
 
   const form = useForm<TripFormValues>({
     resolver: zodResolver(tripSchema),
@@ -90,7 +91,6 @@ export function TripCreateModal({ isOpen, onClose, onSubmit }: TripCreateModalPr
       return
     }
 
-    setIsPlanning(true)
     const toastId = toast.loading("Planning your trip…", {
       description: "Calculating route and HOS schedule.",
     })
@@ -103,8 +103,7 @@ export function TripCreateModal({ isOpen, onClose, onSubmit }: TripCreateModalPr
     }
 
     try {
-      const response = await api.post("/trips/plan/", tripData)
-      const plan: TripPlan = response.data
+      const plan = await planTrip(tripData)
 
       toast.success("Trip planned!", {
         id: toastId,
@@ -124,8 +123,6 @@ export function TripCreateModal({ isOpen, onClose, onSubmit }: TripCreateModalPr
         description: message,
         duration: 6000,
       })
-    } finally {
-      setIsPlanning(false)
     }
   }
 
