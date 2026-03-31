@@ -5,7 +5,6 @@ MegaMiles is a full-stack application designed for efficient trip management and
 ## ✨ Features
 
 - **Trip Management**: Plan, track, and manage complex routes and schedules.
-- **User Authentication**: Secure access and account management.
 - **Data-Driven Insights**: Real-time updates and historical trip data.
 - **Responsive UI**: Optimized for both desktop and mobile use.
 
@@ -17,6 +16,7 @@ MegaMiles is a full-stack application designed for efficient trip management and
 ## 🚀 Quick Start
 
 ### Backend (Django)
+
 1. **Navigate**: `cd backend`
 2. **Environment**: `python -m venv venv && source venv/bin/activate`
 3. **Install**: `pip install -r requirements.txt`
@@ -24,6 +24,7 @@ MegaMiles is a full-stack application designed for efficient trip management and
 5. **Run**: `python manage.py runserver` (or use `make dev` if you have `make` installed).
 
 ### Frontend (React + Vite)
+
 1. **Navigate**: `cd frontend`
 2. **Install**: `bun install`
 3. **Run**: `bun dev`
