@@ -10,7 +10,7 @@ MegaMiles is a full-stack application designed for efficient trip management and
 
 ## 📂 Project Structure
 
-- **`backend/`**: Django REST Framework API. Handles core logic, DB management, and authentication.
+- **`backend/`**: Django REST Framework API. Handles core logic.
 - **`frontend/`**: React + TypeScript + Vite. Modern UI built with Tailwind CSS and TanStack Query.
 
 ## 🚀 Quick Start
